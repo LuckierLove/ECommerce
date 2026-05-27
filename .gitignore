@@ -1,0 +1,33 @@
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.turbo/
+
+# Backend / Gradle
+backend/.gradle/
+backend/build/
+backend/out/
+backend/.kotlin/
+backend/gradle-app.setting
+
+# Logs
+*.log
+logs/
+
+# Env files
+.env
+.env.*
+
+# Misc
+*.tmp
+*.swp
