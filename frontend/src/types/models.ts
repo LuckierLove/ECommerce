@@ -57,6 +57,10 @@ export interface Order {
   updatedAt: string;
 }
 
+export interface OrderDetail extends Order {
+  items: OrderItem[];
+}
+
 export interface OrderItem {
   id: string;
   orderId: string;

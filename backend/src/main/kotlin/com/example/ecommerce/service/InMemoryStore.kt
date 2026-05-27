@@ -82,9 +82,11 @@ class InMemoryStore {
         val admin = createSeedUser("admin", "admin@example.com", "admin123", "admin")
         val alice = createSeedUser("alice", "alice@example.com", "alice123", "user")
         val merchant = createSeedUser("merchant1", "merchant@example.com", "merchant123", "merchant")
+        val bob = createSeedUser("bob", "bob@example.com", "bob123", "user")
 
         createSeedCart(alice.id)
         createSeedCart(merchant.id)
+        createSeedCart(bob.id)
 
         listOf(
             Merchant(nextId(), "星火商贸", timestamp, timestamp),
@@ -445,7 +447,20 @@ class InMemoryStore {
         return paginate(applySorting(filtered, sortOrder, comparator), pageNumber, pageSize)
     }
 
-    fun getOrder(id: String): Order = orders[id] ?: throw NotFoundException("订单不存在")
+    fun getOrder(id: String): OrderDetail {
+        val order = orders[id] ?: throw NotFoundException("订单不存在")
+        val items = orderItems.values
+            .filter { it.orderId == id }
+            .sortedBy { it.createdAt }
+        return OrderDetail(
+            id = order.id,
+            userId = order.userId,
+            totalAmount = order.totalAmount,
+            createdAt = order.createdAt,
+            updatedAt = order.updatedAt,
+            items = items
+        )
+    }
 
     fun createOrder(payload: OrderPayload): Order {
         val userId = requireText(payload.userId, "用户ID")

@@ -35,7 +35,7 @@
       <el-table-column prop="createdAt" label="创建时间" />
       <el-table-column label="操作" width="180">
         <template #default="scope">
-          <el-button type="primary" link @click="openEdit(scope.row)">编辑</el-button>
+          <el-button type="primary" link @click="showDetail(scope.row)">查看详情</el-button>
           <el-button type="danger" link @click="removeOrder(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
@@ -53,7 +53,7 @@
       @current-change="handlePage"
       @size-change="handleSize"
     />
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="480px">
+    <el-dialog v-model="dialogVisible" title="新增订单" width="480px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="90px">
         <el-form-item label="用户ID" prop="userId">
           <el-input v-model="form.userId" placeholder="请输入用户ID" />
@@ -67,14 +67,30 @@
         <el-button type="primary" :loading="submitting" @click="submit">保存</el-button>
       </template>
     </el-dialog>
+    <el-dialog v-model="detailVisible" title="订单详情" width="720px">
+      <el-descriptions :column="2" border class="detail-meta">
+        <el-descriptions-item label="订单ID">{{ detailOrder?.id }}</el-descriptions-item>
+        <el-descriptions-item label="用户ID">{{ detailOrder?.userId }}</el-descriptions-item>
+        <el-descriptions-item label="总金额">{{ detailOrder?.totalAmount }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ detailOrder?.createdAt }}</el-descriptions-item>
+      </el-descriptions>
+      <el-table :data="detailOrder?.items || []" border class="detail-table">
+        <el-table-column prop="productId" label="商品ID" width="180" />
+        <el-table-column prop="quantity" label="数量" width="100" />
+        <el-table-column prop="price" label="单价" width="120" />
+        <el-table-column prop="createdAt" label="加入时间" />
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { createOrder, deleteOrder, listOrders, updateOrder } from "../../api/orders";
-import type { Order } from "../../types/models";
+import { createOrder, deleteOrder, getOrder, listOrders } from "../../api/orders";
+import type { Order, OrderDetail } from "../../types/models";
 
 const orders = ref<Order[]>([]);
 const loading = ref(false);
@@ -82,14 +98,14 @@ const total = ref(0);
 const errorMessage = ref("");
 const submitting = ref(false);
 const dialogVisible = ref(false);
-const isEdit = ref(false);
+const detailVisible = ref(false);
+const detailOrder = ref<OrderDetail | null>(null);
 const formRef = ref();
 const form = reactive({
   id: "",
   userId: "",
   totalAmount: ""
 });
-const dialogTitle = computed(() => (isEdit.value ? "编辑订单" : "新增订单"));
 const rules = {
   userId: [{ required: true, message: "请输入用户ID", trigger: "blur" }],
   totalAmount: [
@@ -116,8 +132,9 @@ const fetchOrders = async () => {
       sortBy: query.sortBy,
       sortOrder: query.sortOrder
     });
-    orders.value = res.data.list;
-    total.value = res.data.total;
+    const pageData = (res as any).data as { list: Order[]; total: number };
+    orders.value = pageData.list;
+    total.value = pageData.total;
     errorMessage.value = "";
   } catch (error) {
     errorMessage.value = "获取订单失败，请重试";
@@ -141,7 +158,14 @@ const persistQuery = () => {
   localStorage.setItem(storageKey, JSON.stringify(query));
 };
 
+const router = useRouter();
+const authStore = useAuthStore();
+
 onMounted(() => {
+  if (!authStore.token) {
+    router.push("/login");
+    return;
+  }
   loadQuery();
   fetchOrders();
 });
@@ -153,17 +177,14 @@ const resetForm = () => {
 };
 
 const openCreate = () => {
-  isEdit.value = false;
   resetForm();
   dialogVisible.value = true;
 };
 
-const openEdit = (row: Order) => {
-  isEdit.value = true;
-  form.id = row.id;
-  form.userId = row.userId;
-  form.totalAmount = row.totalAmount;
-  dialogVisible.value = true;
+const showDetail = async (row: Order) => {
+  const res = await getOrder(row.id);
+  detailOrder.value = (res as any).data as OrderDetail;
+  detailVisible.value = true;
 };
 
 const submit = async () => {
@@ -171,13 +192,8 @@ const submit = async () => {
   if (!valid) return;
   submitting.value = true;
   try {
-    if (isEdit.value) {
-      await updateOrder(form.id, { totalAmount: form.totalAmount });
-      ElMessage.success("更新成功");
-    } else {
-      await createOrder({ userId: form.userId, totalAmount: form.totalAmount });
-      ElMessage.success("创建成功");
-    }
+    await createOrder({ userId: form.userId, totalAmount: form.totalAmount });
+    ElMessage.success("创建成功");
     dialogVisible.value = false;
     fetchOrders();
   } catch (error) {

@@ -12,11 +12,18 @@ INSERT IGNORE INTO permissions (id, name, created_at, updated_at) VALUES
 ('perm-merchants-read', 'merchants.read', '2026-05-27 10:00:00', '2026-05-27 10:00:00'),
 ('perm-coupons-read', 'coupons.read', '2026-05-27 10:00:00', '2026-05-27 10:00:00');
 
+-- Plaintext passwords for seeded users (for testing only):
+-- admin    => admin123
+-- alice    => alice123
+-- merchant1=> merchant123
+-- Note: 'bob' password plaintext not present in codebase; hash kept as-is.
 INSERT IGNORE INTO users (id, username, email, password, created_at, updated_at) VALUES
 ('user-admin', 'admin', 'admin@example.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '2026-05-27 10:00:00', '2026-05-27 10:00:00'),
 ('user-alice', 'alice', 'alice@example.com', '4e40e8ffe0ee32fa53e139147ed559229a5930f89c2204706fc174beb36210b3', '2026-05-27 10:00:00', '2026-05-27 10:00:00'),
 ('user-merchant', 'merchant1', 'merchant@example.com', '0e3183c45e8ef9bc95fc8a2dc83f040149d2c7193312aa0740da9c0d50b1f439', '2026-05-27 10:00:00', '2026-05-27 10:00:00'),
-('user-bob', 'bob', 'bob@example.com', 'e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446', '2026-05-27 10:00:00', '2026-05-27 10:00:00');
+('user-bob', 'bob', 'bob@example.com', '8d059c3640b97180dd2ee453e20d34ab0cb0f2eccbe87d01915a8e578a202b11', '2026-05-27 10:00:00', '2026-05-27 10:00:00');
+
+-- bob      => bob123
 
 INSERT IGNORE INTO user_roles (user_id, role_id, created_at, updated_at) VALUES
 ('user-admin', 'role-admin', '2026-05-27 10:00:00', '2026-05-27 10:00:00'),

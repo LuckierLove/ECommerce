@@ -45,6 +45,8 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { ElMessage } from "element-plus";
 import { listCoupons } from "../../api/coupons";
 import type { Coupon } from "../../types/models";
@@ -97,7 +99,14 @@ const persistQuery = () => {
   localStorage.setItem(storageKey, JSON.stringify(query));
 };
 
+const router = useRouter();
+const authStore = useAuthStore();
+
 onMounted(() => {
+  if (!authStore.token) {
+    router.push("/login");
+    return;
+  }
   loadQuery();
   fetchCoupons();
 });

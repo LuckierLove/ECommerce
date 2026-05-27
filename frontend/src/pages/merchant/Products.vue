@@ -81,6 +81,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { createProduct, deleteProduct, listProducts, updateProduct } from "../../api/products";
 import type { Product } from "../../types/models";
@@ -155,7 +157,14 @@ const persistQuery = () => {
   localStorage.setItem(storageKey, JSON.stringify(query));
 };
 
+const router = useRouter();
+const authStore = useAuthStore();
+
 onMounted(() => {
+  if (!authStore.token) {
+    router.push("/login");
+    return;
+  }
   loadQuery();
   fetchProducts();
 });
@@ -265,6 +274,29 @@ const handleSize = (size: number) => {
 .toolbar-actions {
   display: flex;
   gap: 8px;
+}
+
+.toolbar .el-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+.toolbar .el-form-item {
+  margin-bottom: 0;
+}
+.toolbar .el-form-item:last-child {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 800px) {
+  .toolbar {
+    align-items: flex-start;
+  }
 }
 
 .pager {

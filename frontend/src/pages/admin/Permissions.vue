@@ -68,6 +68,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { createPermission, deletePermission, listPermissions, updatePermission } from "../../api/permissions";
 import type { Permission } from "../../types/models";
@@ -132,7 +134,14 @@ const persistQuery = () => {
   localStorage.setItem(storageKey, JSON.stringify(query));
 };
 
+const router = useRouter();
+const authStore = useAuthStore();
+
 onMounted(() => {
+  if (!authStore.token) {
+    router.push("/login");
+    return;
+  }
   loadQuery();
   fetchPermissions();
 });

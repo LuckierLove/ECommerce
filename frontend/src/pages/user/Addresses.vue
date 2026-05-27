@@ -78,6 +78,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { createAddress, deleteAddress, listAddresses, updateAddress } from "../../api/addresses";
 import type { Address } from "../../types/models";
@@ -139,7 +141,16 @@ const fetchAddresses = async () => {
   }
 };
 
-onMounted(fetchAddresses);
+const router = useRouter();
+const authStore = useAuthStore();
+
+onMounted(() => {
+  if (!authStore.token) {
+    router.push("/login");
+    return;
+  }
+  fetchAddresses();
+});
 
 const resetForm = () => {
   form.id = "";

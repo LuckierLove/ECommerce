@@ -33,6 +33,11 @@
       <el-table-column prop="name" label="名称" />
       <el-table-column prop="description" label="描述" />
       <el-table-column prop="price" label="价格" width="120" />
+      <el-table-column label="操作" width="140">
+        <template #default="scope">
+          <el-button type="primary" size="small" @click="openAddToCart(scope.row)">加入购物车</el-button>
+        </template>
+      </el-table-column>
     </el-table>
     <el-alert v-if="errorMessage" type="error" show-icon :title="errorMessage" class="state" />
     <el-empty v-else-if="!loading && products.length === 0" description="暂无数据" class="state">
@@ -47,19 +52,41 @@
       @current-change="handlePage"
       @size-change="handleSize"
     />
+    <el-dialog v-model="cartDialogVisible" title="加入购物车" width="420px">
+      <el-form :model="cartForm" label-width="90px">
+        <el-form-item label="商品名称">
+          <el-input :model-value="selectedProduct?.name || ''" disabled />
+        </el-form-item>
+        <el-form-item label="数量">
+          <el-input-number v-model="cartForm.quantity" :min="1" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="cartDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="addingToCart" @click="confirmAddToCart">加入</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { ElMessage } from "element-plus";
 import { listProducts } from "../../api/products";
+import { createCartItem, listCarts } from "../../api/cart";
 import type { Product } from "../../types/models";
 
 const products = ref<Product[]>([]);
 const loading = ref(false);
 const total = ref(0);
 const errorMessage = ref("");
+const cartDialogVisible = ref(false);
+const addingToCart = ref(false);
+const selectedProduct = ref<Product | null>(null);
+const currentCartId = ref("");
+const cartForm = reactive({ quantity: 1 });
 const query = reactive({
   page: 1,
   size: 10,
@@ -83,8 +110,9 @@ const fetchProducts = async () => {
       sortBy: query.sortBy,
       sortOrder: query.sortOrder
     });
-    products.value = res.data.list;
-    total.value = res.data.total;
+    const pageData = (res as any).data as { list: Product[]; total: number };
+    products.value = pageData.list;
+    total.value = pageData.total;
     errorMessage.value = "";
   } catch (error) {
     errorMessage.value = "获取商品失败，请重试";
@@ -108,10 +136,64 @@ const persistQuery = () => {
   localStorage.setItem(storageKey, JSON.stringify(query));
 };
 
+const router = useRouter();
+const authStore = useAuthStore();
+
 onMounted(() => {
+  if (!authStore.token) {
+    router.push("/login");
+    return;
+  }
+  authStore.loadCurrentUser().catch(() => undefined);
   loadQuery();
   fetchProducts();
+  loadCurrentCart().catch(() => undefined);
 });
+
+const loadCurrentCart = async () => {
+  if (!authStore.userId) {
+    await authStore.loadCurrentUser();
+  }
+  if (!authStore.userId) {
+    return;
+  }
+  const res = await listCarts({ userId: authStore.userId });
+  const pageData = (res as any).data as { list: { id: string }[] };
+  currentCartId.value = pageData.list[0]?.id || "";
+};
+
+const openAddToCart = async (product: Product) => {
+  selectedProduct.value = product;
+  cartForm.quantity = 1;
+  if (!currentCartId.value) {
+    await loadCurrentCart();
+  }
+  if (!currentCartId.value) {
+    ElMessage.warning("未找到当前购物车，请先创建购物车");
+    return;
+  }
+  cartDialogVisible.value = true;
+};
+
+const confirmAddToCart = async () => {
+  if (!selectedProduct.value || !currentCartId.value) {
+    return;
+  }
+  addingToCart.value = true;
+  try {
+    await createCartItem({
+      cartId: currentCartId.value,
+      productId: selectedProduct.value.id,
+      quantity: cartForm.quantity
+    });
+    ElMessage.success("已加入购物车");
+    cartDialogVisible.value = false;
+  } catch (error) {
+    ElMessage.error("加入购物车失败");
+  } finally {
+    addingToCart.value = false;
+  }
+};
 
 const handleSearch = () => {
   query.page = 1;

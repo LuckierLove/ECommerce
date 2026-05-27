@@ -56,6 +56,15 @@ data class Order(
     val updatedAt: String
 )
 
+data class OrderDetail(
+    val id: String,
+    val userId: String,
+    val totalAmount: String,
+    val createdAt: String,
+    val updatedAt: String,
+    val items: List<OrderItem>
+)
+
 data class OrderItemPayload(
     val productId: String? = null,
     val quantity: Int? = null,

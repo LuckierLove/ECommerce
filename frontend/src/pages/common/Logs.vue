@@ -41,6 +41,8 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { ElMessage } from "element-plus";
 import { listLogs } from "../../api/logs";
 import type { LogRecord } from "../../types/models";
@@ -75,7 +77,16 @@ const fetchLogs = async () => {
   }
 };
 
-onMounted(fetchLogs);
+const router = useRouter();
+const authStore = useAuthStore();
+
+onMounted(() => {
+  if (!authStore.token) {
+    router.push("/login");
+    return;
+  }
+  fetchLogs();
+});
 
 const handleSearch = () => {
   query.page = 1;

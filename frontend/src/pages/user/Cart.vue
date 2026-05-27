@@ -15,17 +15,24 @@
         </el-form-item>
       </el-form>
       <div class="toolbar-actions">
-        <el-button type="primary" @click="openCreate">新增商品</el-button>
+        <el-button type="primary" @click="openCreate">新增购物车项</el-button>
         <el-button @click="fetchItems">刷新</el-button>
       </div>
     </div>
     <el-table :data="items" v-loading="loading" border>
       <el-table-column prop="id" label="ID" width="180" />
-      <el-table-column prop="productId" label="商品ID" />
+      <el-table-column label="商品" min-width="220">
+        <template #default="scope">
+          <div class="product-cell">
+            <div class="product-name">{{ productName(scope.row.productId) }}</div>
+            <div class="product-id">{{ scope.row.productId }}</div>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="quantity" label="数量" width="120" />
       <el-table-column label="操作" width="180">
         <template #default="scope">
-          <el-button type="primary" link @click="openEdit(scope.row)">编辑</el-button>
+          <el-button type="primary" @click="openEdit(scope.row)">编辑</el-button>
           <el-button type="danger" link @click="removeItem(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
@@ -65,9 +72,12 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { createCartItem, deleteCartItem, listCartItems, updateCartItem } from "../../api/cart";
-import type { CartItem } from "../../types/models";
+import { listProducts } from "../../api/products";
+import type { CartItem, Product } from "../../types/models";
 
 const items = ref<CartItem[]>([]);
 const loading = ref(false);
@@ -76,6 +86,7 @@ const errorMessage = ref("");
 const submitting = ref(false);
 const dialogVisible = ref(false);
 const isEdit = ref(false);
+const products = ref<Product[]>([]);
 const formRef = ref();
 const form = reactive({
   id: "",
@@ -104,8 +115,9 @@ const fetchItems = async () => {
       cartId: query.cartId || undefined,
       productId: query.productId || undefined
     });
-    items.value = res.data.list;
-    total.value = res.data.total;
+    const pageData = (res as any).data as { list: CartItem[]; total: number };
+    items.value = pageData.list;
+    total.value = pageData.total;
     errorMessage.value = "";
   } catch (error) {
     errorMessage.value = "获取购物车失败，请重试";
@@ -114,7 +126,29 @@ const fetchItems = async () => {
   }
 };
 
-onMounted(fetchItems);
+const fetchProducts = async () => {
+  try {
+    const res = await listProducts({ page: 1, size: 1000 });
+    const pageData = (res as any).data as { list: Product[] };
+    products.value = pageData.list;
+  } catch {
+    products.value = [];
+  }
+};
+
+const productName = (productId: string) => products.value.find((product) => product.id === productId)?.name || productId;
+
+const router = useRouter();
+const authStore = useAuthStore();
+
+onMounted(() => {
+  if (!authStore.token) {
+    router.push("/login");
+    return;
+  }
+  fetchProducts();
+  fetchItems();
+});
 
 const resetForm = () => {
   form.id = "";
@@ -210,6 +244,20 @@ const handleSize = (size: number) => {
 .toolbar-actions {
   display: flex;
   gap: 8px;
+}
+
+.product-cell {
+  display: grid;
+  gap: 2px;
+}
+
+.product-name {
+  font-weight: 600;
+}
+
+.product-id {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 
 .pager {

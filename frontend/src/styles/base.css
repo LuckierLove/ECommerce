@@ -1,6 +1,9 @@
 :root {
   color: #1f2937;
-  background: #f6f7fb;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.1), transparent 28%),
+    #f4f7fb;
 }
 
 * {
@@ -10,6 +13,18 @@
 body {
   margin: 0;
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  min-width: 1280px;
+  /* inherit the root background so light/dark switch is consistent */
+  background: inherit;
+}
+
+/* Ensure light-mode background is explicitly applied to document elements */
+html, body, #app {
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.1), transparent 28%),
+    #f4f7fb !important;
+  height: 100%;
 }
 
 a {
@@ -23,10 +38,487 @@ a {
 
 .page {
   padding: 24px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.12);
 }
 
 .page-title {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 16px;
+  color: #0f172a;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #f8fbff;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.toolbar .el-form-item {
+  margin-bottom: 0;
+}
+
+.toolbar .el-form-item__label {
+  color: #475569;
+  font-weight: 500;
+}
+
+.toolbar .el-input,
+.toolbar .el-select,
+.toolbar .el-date-editor {
+  min-width: 160px;
+}
+
+.toolbar .el-button,
+.page .el-button {
+  border-radius: 999px;
+}
+
+.page .el-table {
+  margin-top: 6px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.page .el-table th {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 600;
+}
+
+.page .el-table__row {
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.page .el-table__row:hover > td {
+  background: #f8fbff !important;
+}
+
+.page .el-table td,
+.page .el-table th {
+  border-bottom-color: rgba(226, 232, 240, 0.9);
+}
+
+.page .el-pagination {
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+/* Compact, localized pagination styling */
+.page .el-pagination {
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(248, 250, 255, 0.8);
+  align-items: center;
+}
+
+.page .el-pagination .el-pagination__total,
+.page .el-pagination .el-pagination__jump {
+  color: #475569;
+  font-size: 13px;
+}
+
+.page .el-pagination .el-select {
+  --el-select-font-size: 13px;
+}
+
+.page .el-pagination .el-pagination__sizes {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.page .el-pagination .el-pager li {
+  min-width: 36px;
+  height: 36px;
+  line-height: 36px;
+  border-radius: 999px;
+}
+
+.page .el-pagination .el-pager li.is-current {
+  background: linear-gradient(135deg,#2563eb,#06b6d4);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(37,99,235,0.18);
+}
+
+.page .el-pagination .el-select .el-input__inner {
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+.page .el-pagination button,
+.page .el-pagination .btn-prev,
+.page .el-pagination .btn-next,
+.page .el-pagination .el-pager li {
+  border-radius: 999px;
+}
+
+.state {
+  margin-top: 12px;
+  border-radius: 16px;
+}
+
+.page .el-alert,
+.page .el-empty {
+  border-radius: 16px;
+}
+
+.page .el-card {
+  border-radius: 22px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+}
+
+.page .el-dialog {
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.2);
+}
+
+.page .el-dialog__header {
+  margin-right: 0;
+  padding: 18px 22px 0;
+}
+
+.page .el-dialog__title {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.page .el-dialog__body {
+  padding: 22px;
+}
+
+.page .el-dialog__footer {
+  padding: 0 22px 22px;
+}
+
+.page .el-button {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.page .el-button:hover {
+  transform: translateY(-1px);
+}
+
+.page .el-button--primary.is-link,
+.page .el-button--danger.is-link {
+  padding-left: 0;
+  padding-right: 0;
+  font-weight: 600;
+}
+
+.page .el-button--primary.is-link {
+  color: #2563eb;
+}
+
+.page .el-button--danger.is-link {
+  color: #dc2626;
+}
+
+.page .el-input__wrapper,
+.page .el-select__wrapper,
+.page .el-textarea__inner {
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
+}
+
+  /* Overlay parent wrapper to visually darken inputs when specific overrides fail */
+  .dark-theme .el-input__wrapper,
+  .el-theme-dark .el-input__wrapper {
+    position: relative;
+  }
+  .dark-theme .el-input__wrapper::after,
+  .el-theme-dark .el-input__wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    background: rgba(6,10,18,0.9);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .dark-theme .el-input__inner,
+  .el-theme-dark .el-input__inner {
+    position: relative;
+    z-index: 2;
+    background: transparent !important;
+  }
+
+.page .el-input__wrapper.is-focus,
+.page .el-select__wrapper.is-focus,
+.page .el-textarea__inner:focus {
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.42), 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+.el-theme-dark,
+.dark-theme {
+  /* Element Plus variable overrides for dark mode */
+  --el-bg-color-base: #071122;
+  --el-input-bg-color: rgba(255,255,255,0.02);
+  --el-text-color-primary: #e6eef8;
+  --el-border-color: rgba(255,255,255,0.06);
+  --el-dropdown-bg-color: rgba(6,10,18,0.9);
+  /* also override fill/blank variables used by ElementPlus for input wrappers */
+  --el-fill-color-blank: rgba(6,10,18,0.88);
+  --el-fill-color: rgba(6,10,18,0.88);
+  --el-input-bg-color: rgba(6,10,18,0.88);
+}
+
+/* Final override to ensure input inner becomes transparent over dark wrapper */
+.el-theme-dark .el-input__inner,
+.dark-theme .el-input__inner,
+.el-theme-dark .el-select .el-input__inner,
+.dark-theme .el-select .el-input__inner,
+.el-theme-dark .el-textarea__inner,
+.dark-theme .el-textarea__inner {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #e6eef8 !important;
+}
+
+/* Global dark theme overrides */
+.dark-theme {
+  --bg-color: #071122;
+  --card-bg: rgba(6,10,18,0.7);
+  --muted: #9aa6b2;
+  --text: #e6eef8;
+}
+
+.dark-theme body {
+  background: linear-gradient(180deg, #041027 0%, #071122 100%);
+  color: var(--text);
+}
+
+.dark-theme .page {
+  background: var(--card-bg);
+  box-shadow: none;
+  border: 1px solid rgba(255,255,255,0.04);
+  color: var(--text);
+}
+
+.dark-theme .toolbar {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.dark-theme .page .el-table th {
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+
+.dark-theme .page .el-table td {
+  color: var(--text);
+}
+
+.dark-theme .page .el-pagination {
+  background: rgba(255,255,255,0.02);
+}
+
+.dark-theme .page .el-pagination .el-pagination__total,
+.dark-theme .page .el-pagination .el-pagination__jump {
+  color: var(--muted);
+}
+
+/* Element Plus component dark-mode overrides */
+/* Target Element Plus dark class and our custom dark-theme for redundancy */
+.el-theme-dark .el-table,
+.dark-theme .el-table {
+  background: transparent !important;
+  color: #e6eef8 !important;
+  border-color: rgba(255,255,255,0.04) !important;
+}
+.el-theme-dark .page .el-input__inner,
+.dark-theme .page .el-input__inner,
+.el-theme-dark .el-input__inner,
+.dark-theme .el-input__inner,
+.el-theme-dark .el-select .el-input__inner,
+.dark-theme .el-select .el-input__inner,
+.el-theme-dark .el-textarea__inner,
+.dark-theme .el-textarea__inner {
+  background: rgba(255,255,255,0.02) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+  color: #e6eef8 !important;
+}
+
+/* Stronger direct rules for actual input/textarea elements */
+.el-theme-dark input.el-input__inner,
+.dark-theme input.el-input__inner,
+.el-theme-dark textarea.el-textarea__inner,
+.dark-theme textarea.el-textarea__inner {
+  background-color: rgba(255,255,255,0.02) !important;
+  color: #e6eef8 !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+
+/* Force darker overlay using inset shadow to override stubborn backgrounds */
+.el-theme-dark input.el-input__inner,
+.dark-theme input.el-input__inner,
+.el-theme-dark textarea.el-textarea__inner,
+.dark-theme textarea.el-textarea__inner {
+  box-shadow: inset 0 0 0 999px rgba(6,10,18,0.88) !important;
+  background-color: transparent !important;
+}
+
+.el-theme-dark .el-input.is-focus .el-input__inner,
+.dark-theme .el-input.is-focus .el-input__inner {
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.18) !important;
+}
+
+.el-theme-dark .el-select .el-input__inner .el-input__inner,
+.dark-theme .el-select .el-input__inner .el-input__inner {
+  background: rgba(255,255,255,0.02) !important;
+}
+.el-theme-dark .el-table th,
+.dark-theme .el-table th {
+  background: rgba(255,255,255,0.02) !important;
+  color: #cbd5e1 !important;
+}
+.el-theme-dark .el-table td,
+.dark-theme .el-table td {
+  background: transparent !important;
+  color: #e6eef8 !important;
+}
+
+/* Inputs, selects, textareas */
+.el-theme-dark .el-input__inner,
+.dark-theme .el-input__inner,
+.el-theme-dark .el-select .el-input__inner,
+.dark-theme .el-select .el-input__inner,
+.el-theme-dark .el-input .el-input__inner,
+.dark-theme .el-input .el-input__inner,
+.el-theme-dark .el-textarea__inner,
+.dark-theme .el-textarea__inner {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+  color: #e6eef8 !important;
+  box-shadow: none !important;
+}
+
+.el-theme-dark .el-select .el-input__inner .el-input__inner,
+.dark-theme .el-select .el-input__inner .el-input__inner {
+  background: rgba(255,255,255,0.03) !important;
+}
+
+/* Pagination buttons */
+.el-theme-dark .el-pagination .el-pager li,
+.dark-theme .el-pagination .el-pager li {
+  background: transparent !important;
+  color: #cbd5e1 !important;
+  border: none !important;
+}
+.el-theme-dark .el-pagination .el-pager li.is-current,
+.dark-theme .el-pagination .el-pager li.is-current {
+  background: linear-gradient(135deg,#2563eb,#06b6d4) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(37,99,235,0.18) !important;
+}
+.el-theme-dark .el-pagination .el-pager li,
+.dark-theme .el-pagination .el-pager li,
+.el-theme-dark .el-pagination button,
+.dark-theme .el-pagination button,
+.el-theme-dark .el-pagination .btn-prev,
+.dark-theme .el-pagination .btn-prev,
+.el-theme-dark .el-pagination .btn-next,
+.dark-theme .el-pagination .btn-next {
+  background: transparent !important;
+  color: #cbd5e1 !important;
+  border: none !important;
+}
+.el-theme-dark .el-pagination .btn-prev,
+.el-theme-dark .el-pagination .btn-next,
+.dark-theme .el-pagination .btn-prev,
+.dark-theme .el-pagination .btn-next {
+  background: transparent !important;
+  color: #cbd5e1 !important;
+}
+
+/* Dropdown panels, dialogs */
+.el-theme-dark .el-select-dropdown,
+.dark-theme .el-select-dropdown,
+.el-theme-dark .el-dialog,
+.dark-theme .el-dialog {
+  background: rgba(6,10,18,0.8) !important;
+  color: #e6eef8 !important;
+}
+
+/* Buttons inside pages */
+.el-theme-dark .page .el-button,
+.dark-theme .page .el-button {
+  background: rgba(255,255,255,0.04) !important;
+  color: #e6eef8 !important;
+}
+
+/* Theme switch styles (global, used by MainLayout and Login) */
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.switch-track {
+  width: 64px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: background 0.22s ease;
+  position: relative;
+}
+.switch-track.is-dark { background: linear-gradient(90deg,#374151,#0f1724); }
+.switch-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.12);
+  transform: translateX(0);
+  transition: transform 0.22s cubic-bezier(.2,.9,.2,1), background 0.15s ease;
+  z-index: 2;
+}
+.switch-thumb.is-dark { transform: translateX(32px); background: #0b1220; box-shadow: 0 6px 18px rgba(2,6,23,0.6); }
+.track-label { position: absolute; top: 50%; transform: translateY(-50%); font-size: 12px; z-index: 1; pointer-events: none; }
+.label-light { left: 10px; color: #0f172a; }
+.label-dark { right: 10px; color: #64748b; }
+.dark-theme .label-light { color: #9aa6b2; }
+.dark-theme .label-dark { color: #e6eef8; }
+
+/* Dark-mode table border fixes */
+.dark-theme .page .el-table {
+  border: none !important;
+  box-shadow: none !important;
+}
+.dark-theme .page .el-table th,
+.dark-theme .page .el-table td {
+  border-bottom-color: rgba(255,255,255,0.04) !important;
+}
+
+/* Login page full-height fix in dark mode */
+.dark-theme .login {
+  min-height: 100vh !important;
+  background: transparent !important;
+}
+
+/* Ensure the document and app root use dark background when html has .dark-theme */
+.dark-theme, .dark-theme #app, :root.dark-theme {
+  background: linear-gradient(180deg, #041027 0%, #071122 100%) !important;
+}
+
+/* force body background under all circumstances */
+.dark-theme body {
+  background: linear-gradient(180deg, #041027 0%, #071122 100%) !important;
 }

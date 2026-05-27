@@ -168,7 +168,7 @@ class ResourceController(
     ): ApiResponse<Any?> = ApiResponse.ok(store.listOrders(page, size, userId, sortBy, sortOrder))
 
     @GetMapping("/orders/{id}")
-    fun getOrder(@PathVariable id: String): ApiResponse<Order> = ApiResponse.ok(store.getOrder(id))
+    fun getOrder(@PathVariable id: String): ApiResponse<OrderDetail> = ApiResponse.ok(store.getOrder(id))
 
     @PostMapping("/orders")
     fun createOrder(@RequestBody payload: OrderPayload): ApiResponse<Order> = ApiResponse.ok(store.createOrder(payload))
