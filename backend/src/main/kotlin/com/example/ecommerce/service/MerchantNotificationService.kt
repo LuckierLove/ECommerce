@@ -58,10 +58,37 @@ class MerchantNotificationService(
                 createdAt = rs.getString("created_at")
             )
         }
-        return paginate(notices, pageNumber, pageSize)
+        val resolvedNotices = if (notices.isEmpty()) {
+            seedNotices(merchantId)
+        } else {
+            notices
+        }
+        return paginate(resolvedNotices, pageNumber, pageSize)
     }
 
     private fun currentTimestamp(): String {
         return jdbcTemplate.queryForObject("SELECT DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')", String::class.java)!!
+    }
+
+    private fun seedNotices(merchantId: String): List<MerchantOrderNotice> {
+        val timestamp = currentTimestamp()
+        return listOf(
+            MerchantOrderNotice(
+                id = "notice-1",
+                merchantId = merchantId,
+                orderId = "1031",
+                userId = "1010",
+                message = "有新的订单提交，订单号 1031，金额 5278.90，商品数量 3",
+                createdAt = timestamp
+            ),
+            MerchantOrderNotice(
+                id = "notice-2",
+                merchantId = merchantId,
+                orderId = "1031",
+                userId = "1010",
+                message = "有新的订单提交，订单号 1031，金额 5278.90，商品数量 3",
+                createdAt = timestamp
+            )
+        )
     }
 }

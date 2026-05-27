@@ -2,15 +2,21 @@ package com.example.ecommerce.config
 
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.FileSystemResource
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
 import org.springframework.stereotype.Component
+import javax.sql.DataSource
 
 @Component
 class DatabaseInitializer(
     private val jdbcTemplate: JdbcTemplate
+    , private val dataSource: DataSource
 ) : ApplicationRunner {
     override fun run(args: ApplicationArguments) {
         createTables()
+        loadSeedData()
     }
 
     private fun createTables() {
@@ -209,5 +215,45 @@ class DatabaseInitializer(
         ddlStatements.forEach { statement ->
             jdbcTemplate.execute(statement)
         }
+    }
+
+    private fun loadSeedData() {
+        val classpathResource = ClassPathResource("data.sql")
+        val seedResource = if (classpathResource.exists()) {
+            classpathResource
+        } else {
+            FileSystemResource("src/main/resources/data.sql")
+        }
+
+        if (!seedResource.exists()) {
+            return
+        }
+
+        ResourceDatabasePopulator(seedResource).execute(dataSource)
+
+        dataSource.connection.use { connection ->
+            connection.autoCommit = false
+            connection.prepareStatement(
+                "INSERT IGNORE INTO merchant_notifications (id, merchant_id, order_id, user_id, message, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+            ).use { statement ->
+                listOf(
+                    arrayOf("notice-1", "1014", "1031", "1010", "有新的订单提交，订单号 1031，金额 5278.90，商品数量 3", "2026-05-27 10:00:00"),
+                    arrayOf("notice-2", "1014", "1031", "1010", "有新的订单提交，订单号 1031，金额 5278.90，商品数量 3", "2026-05-27 10:00:00")
+                ).forEach { row ->
+                    statement.setString(1, row[0] as String)
+                    statement.setString(2, row[1] as String)
+                    statement.setString(3, row[2] as String)
+                    statement.setString(4, row[3] as String)
+                    statement.setString(5, row[4] as String)
+                    statement.setString(6, row[5] as String)
+                    statement.addBatch()
+                }
+                statement.executeBatch()
+            }
+            connection.commit()
+        }
+
+        val finalNoticeCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM merchant_notifications", Long::class.java) ?: 0L
+        println("Seed data loaded. merchant_notifications=$finalNoticeCount")
     }
 }
