@@ -7,7 +7,7 @@ export const listCarts = (params: { page?: number; size?: number; userId?: strin
 export const listCartItems = (params: { page?: number; size?: number; cartId?: string; productId?: string }) =>
   http.get<ApiResponse<PageData<CartItem>>>("/cart-items", { params });
 
-export const createCartItem = (payload: { cartId: string; productId: string; quantity: number }) =>
+export const createCartItem = (payload: { cartId: string; productId: string; quantity: number; unitPrice?: string; selectedOptions?: string }) =>
   http.post<ApiResponse<CartItem>>("/cart-items", payload);
 
 export const updateCartItem = (id: string, payload: { quantity: number }) =>

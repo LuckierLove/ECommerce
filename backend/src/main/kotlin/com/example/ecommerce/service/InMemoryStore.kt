@@ -121,19 +121,64 @@ class InMemoryStore {
 
         val aliceCart = carts.values.first { it.userId == alice.id }
         val cartItemOneId = nextId()
-        cartItems[cartItemOneId] = CartItem(cartItemOneId, aliceCart.id, seedProducts.first().id, 1, timestamp, timestamp)
+        cartItems[cartItemOneId] = CartItem(id = cartItemOneId, cartId = aliceCart.id, productId = seedProducts.first().id, quantity = 1, createdAt = timestamp, updatedAt = timestamp)
         val cartItemTwoId = nextId()
-        cartItems[cartItemTwoId] = CartItem(cartItemTwoId, aliceCart.id, seedProducts[1].id, 2, timestamp, timestamp)
+        cartItems[cartItemTwoId] = CartItem(id = cartItemTwoId, cartId = aliceCart.id, productId = seedProducts[1].id, quantity = 2, createdAt = timestamp, updatedAt = timestamp)
 
-        val order = Order(nextId(), alice.id, "5278.90", timestamp, timestamp)
-        orders[order.id] = order
+        val orderId = nextId()
+        val sb = java.math.BigDecimal(seedProducts[0].price).multiply(java.math.BigDecimal.ONE)
+            .add(java.math.BigDecimal(seedProducts[1].price).multiply(java.math.BigDecimal(2)))
+        val totalStr = sb.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()
+        val seededOrder = Order(
+            id = orderId,
+            userId = alice.id,
+            totalAmount = totalStr,
+            subtotal = totalStr,
+            taxAmount = "0.00",
+            shippingCost = "0.00",
+            currency = "CNY",
+            status = "CREATED",
+            paymentStatus = "PAID",
+            itemsCount = 3,
+            createdAt = timestamp,
+            updatedAt = timestamp
+        )
+        orders[seededOrder.id] = seededOrder
         val orderItemOneId = nextId()
-        orderItems[orderItemOneId] = OrderItem(orderItemOneId, order.id, seedProducts.first().id, 1, "4999.00", timestamp, timestamp)
+        orderItems[orderItemOneId] = OrderItem(
+            id = orderItemOneId,
+            orderId = seededOrder.id,
+            productId = seedProducts.first().id,
+            quantity = 1,
+            price = seedProducts.first().price,
+            sku = null,
+            name = seedProducts.first().name,
+            unitPrice = seedProducts.first().price,
+            taxAmount = "0.00",
+            discountAmount = "0.00",
+            subtotal = seedProducts.first().price,
+            createdAt = timestamp,
+            updatedAt = timestamp
+        )
         val orderItemTwoId = nextId()
-        orderItems[orderItemTwoId] = OrderItem(orderItemTwoId, order.id, seedProducts[1].id, 2, "79.90", timestamp, timestamp)
+        orderItems[orderItemTwoId] = OrderItem(
+            id = orderItemTwoId,
+            orderId = seededOrder.id,
+            productId = seedProducts[1].id,
+            quantity = 2,
+            price = seedProducts[1].price,
+            sku = null,
+            name = seedProducts[1].name,
+            unitPrice = seedProducts[1].price,
+            taxAmount = "0.00",
+            discountAmount = "0.00",
+            subtotal = java.math.BigDecimal(seedProducts[1].price).multiply(java.math.BigDecimal(2)).setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+            createdAt = timestamp,
+            updatedAt = timestamp
+        )
 
         val paymentId = nextId()
-        payments[paymentId] = Payment(paymentId, order.id, order.totalAmount, 1, timestamp, timestamp)
+        payments[paymentId] = Payment(paymentId, seededOrder.id, seededOrder.totalAmount, 1, timestamp, timestamp)
 
         val addressOneId = nextId()
         addresses[addressOneId] = Address(addressOneId, alice.id, "中关村大街1号", "北京", "北京", "100080", "中国", timestamp, timestamp)
@@ -458,7 +503,7 @@ class InMemoryStore {
         }
 
         val sql = """
-            SELECT id, user_id, total_amount, created_at, updated_at
+            SELECT id, user_id, total_amount, subtotal, tax_amount, shipping_cost, currency, status, payment_status, items_count, created_at, updated_at
             FROM orders
             $whereClause
             ORDER BY $sortColumn $sortDirection
@@ -476,6 +521,13 @@ class InMemoryStore {
                 id = rs.getString("id"),
                 userId = rs.getString("user_id"),
                 totalAmount = rs.getBigDecimal("total_amount").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                subtotal = rs.getBigDecimal("subtotal").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                taxAmount = rs.getBigDecimal("tax_amount").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                shippingCost = rs.getBigDecimal("shipping_cost").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                currency = rs.getString("currency"),
+                status = rs.getString("status"),
+                paymentStatus = rs.getString("payment_status"),
+                itemsCount = rs.getInt("items_count"),
                 createdAt = rs.getTimestamp("created_at").toLocalDateTime().format(formatter),
                 updatedAt = rs.getTimestamp("updated_at").toLocalDateTime().format(formatter)
             )
@@ -487,7 +539,7 @@ class InMemoryStore {
     fun getOrder(id: String): OrderDetail {
         val order = jdbcTemplate.queryForObject(
             """
-            SELECT id, user_id, total_amount, created_at, updated_at
+            SELECT id, user_id, total_amount, subtotal, tax_amount, shipping_cost, currency, status, payment_status, items_count, billing_address_id, shipping_address_id, shipping_method, tracking_number, note, created_at, updated_at
             FROM orders
             WHERE id = ?
             LIMIT 1
@@ -497,8 +549,20 @@ class InMemoryStore {
                     id = rs.getString("id"),
                     userId = rs.getString("user_id"),
                     totalAmount = rs.getBigDecimal("total_amount").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    subtotal = rs.getBigDecimal("subtotal").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    taxAmount = rs.getBigDecimal("tax_amount").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    shippingCost = rs.getBigDecimal("shipping_cost").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    currency = rs.getString("currency"),
+                    status = rs.getString("status"),
+                    paymentStatus = rs.getString("payment_status"),
+                    itemsCount = rs.getInt("items_count"),
                     createdAt = rs.getTimestamp("created_at").toLocalDateTime().format(formatter),
-                    updatedAt = rs.getTimestamp("updated_at").toLocalDateTime().format(formatter)
+                    updatedAt = rs.getTimestamp("updated_at").toLocalDateTime().format(formatter),
+                    billingAddressId = rs.getString("billing_address_id"),
+                    shippingAddressId = rs.getString("shipping_address_id"),
+                    shippingMethod = rs.getString("shipping_method"),
+                    trackingNumber = rs.getString("tracking_number"),
+                    note = rs.getString("note")
                 )
             },
             id
@@ -506,7 +570,7 @@ class InMemoryStore {
 
         val items = jdbcTemplate.query(
             """
-            SELECT id, order_id, product_id, quantity, price, created_at, updated_at
+            SELECT id, order_id, product_id, quantity, price, sku, name, unit_price, tax_amount, discount_amount, subtotal, created_at, updated_at
             FROM order_items
             WHERE order_id = ?
             ORDER BY created_at, id
@@ -518,6 +582,12 @@ class InMemoryStore {
                     productId = rs.getString("product_id"),
                     quantity = rs.getInt("quantity"),
                     price = rs.getBigDecimal("price").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    sku = rs.getString("sku"),
+                    name = rs.getString("name"),
+                    unitPrice = rs.getBigDecimal("unit_price").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    taxAmount = rs.getBigDecimal("tax_amount").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    discountAmount = rs.getBigDecimal("discount_amount").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    subtotal = rs.getBigDecimal("subtotal").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
                     createdAt = rs.getTimestamp("created_at").toLocalDateTime().format(formatter),
                     updatedAt = rs.getTimestamp("updated_at").toLocalDateTime().format(formatter)
                 )
@@ -528,6 +598,12 @@ class InMemoryStore {
             id = order.id,
             userId = order.userId,
             totalAmount = order.totalAmount,
+            subtotal = order.subtotal,
+            taxAmount = order.taxAmount,
+            shippingCost = order.shippingCost,
+            currency = order.currency,
+            status = order.status,
+            paymentStatus = order.paymentStatus,
             createdAt = order.createdAt,
             updatedAt = order.updatedAt,
             items = items
@@ -543,12 +619,56 @@ class InMemoryStore {
         val totalAmount = requireDecimal(payload.totalAmount, "订单总金额")
         val timestamp = now()
         val orderId = nextId()
-        val order = Order(orderId, userId, totalAmount.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(), timestamp, timestamp)
+        val subtotalValue = payload.items.orEmpty().fold(java.math.BigDecimal.ZERO) { acc, it ->
+            val price = it.price?.trim()?.takeIf { it.isNotEmpty() }?.let { runCatching { java.math.BigDecimal(it) }.getOrNull() } ?: runCatching { java.math.BigDecimal(products[it.productId]?.price ?: "0") }.getOrNull() ?: java.math.BigDecimal.ZERO
+            acc + price.multiply(java.math.BigDecimal(it.quantity ?: 0))
+        }
+        val itemsCount = payload.items.orEmpty().fold(0) { acc, it -> acc + (it.quantity ?: 0) }
+            // Simple shipping rule: free over 500, else 10
+            val shippingCost = if (subtotalValue >= BigDecimal(500)) BigDecimal.ZERO else BigDecimal(10)
+            val tax = subtotalValue.multiply(BigDecimal("0.08")).setScale(2, java.math.RoundingMode.HALF_UP)
+
+            // Apply coupons (by code). Sum discount amounts.
+            var couponDiscount = BigDecimal.ZERO
+            val matchedCoupons = mutableListOf<Coupon>()
+            payload.couponCodes?.forEach { code ->
+                val found = coupons.values.firstOrNull { it.code.equals(code, ignoreCase = true) }
+                if (found != null) {
+                    couponDiscount = couponDiscount.add(found.discountAmount.toBigDecimal())
+                    matchedCoupons.add(found)
+                }
+            }
+
+            var total = subtotalValue.add(tax).add(shippingCost).subtract(couponDiscount)
+            if (total < BigDecimal.ZERO) total = BigDecimal.ZERO
+
+            val order = Order(
+                id = orderId,
+                userId = userId,
+                totalAmount = total.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                subtotal = subtotalValue.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                taxAmount = tax.toPlainString(),
+                shippingCost = shippingCost.toPlainString(),
+                currency = "CNY",
+                status = "CREATED",
+                paymentStatus = "UNPAID",
+                itemsCount = itemsCount,
+                createdAt = timestamp,
+                updatedAt = timestamp
+            )
+
         jdbcTemplate.update(
-            "INSERT INTO orders (id, user_id, total_amount, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO orders (id, user_id, total_amount, subtotal, tax_amount, shipping_cost, currency, status, payment_status, items_count, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             order.id,
             order.userId,
             order.totalAmount,
+            order.subtotal,
+            order.taxAmount,
+            order.shippingCost,
+            order.currency,
+            order.status,
+            order.paymentStatus,
+            order.itemsCount,
             order.createdAt,
             order.updatedAt
         )
@@ -559,13 +679,17 @@ class InMemoryStore {
             val quantity = requirePositiveInt(item.quantity, "数量")
             val price = item.price?.trim()?.takeIf { it.isNotEmpty() } ?: product.price
             val orderItemId = nextId()
+            val unitPrice = runCatching { java.math.BigDecimal(price) }.getOrNull() ?: java.math.BigDecimal.ZERO
+            val subtotalItem = unitPrice.multiply(java.math.BigDecimal(quantity)).setScale(2, java.math.RoundingMode.HALF_UP)
             jdbcTemplate.update(
-                "INSERT INTO order_items (id, order_id, product_id, quantity, price, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO order_items (id, order_id, product_id, quantity, price, unit_price, subtotal, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 orderItemId,
                 order.id,
                 productId,
                 quantity,
                 price,
+                unitPrice.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                subtotalItem.toPlainString(),
                 timestamp,
                 timestamp
             )
@@ -591,29 +715,55 @@ class InMemoryStore {
 
     fun updateOrder(id: String, payload: OrderPayload): Order {
         val current = jdbcTemplate.queryForObject(
-            "SELECT id, user_id, total_amount, created_at, updated_at FROM orders WHERE id = ? LIMIT 1",
+            "SELECT id, user_id, total_amount, subtotal, tax_amount, shipping_cost, currency, status, payment_status, items_count, billing_address_id, shipping_address_id, shipping_method, tracking_number, note, created_at, updated_at FROM orders WHERE id = ? LIMIT 1",
             { rs, _ ->
                 Order(
                     id = rs.getString("id"),
                     userId = rs.getString("user_id"),
                     totalAmount = rs.getBigDecimal("total_amount").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    subtotal = rs.getBigDecimal("subtotal").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    taxAmount = rs.getBigDecimal("tax_amount").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    shippingCost = rs.getBigDecimal("shipping_cost").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    currency = rs.getString("currency"),
+                    status = rs.getString("status"),
+                    paymentStatus = rs.getString("payment_status"),
+                    itemsCount = rs.getInt("items_count"),
                     createdAt = rs.getTimestamp("created_at").toLocalDateTime().format(formatter),
-                    updatedAt = rs.getTimestamp("updated_at").toLocalDateTime().format(formatter)
+                    updatedAt = rs.getTimestamp("updated_at").toLocalDateTime().format(formatter),
+                    billingAddressId = rs.getString("billing_address_id"),
+                    shippingAddressId = rs.getString("shipping_address_id"),
+                    shippingMethod = rs.getString("shipping_method"),
+                    trackingNumber = rs.getString("tracking_number"),
+                    note = rs.getString("note")
                 )
             },
             id
         ) ?: throw NotFoundException("订单不存在")
+
         val totalAmount = payload.totalAmount?.trim()?.takeIf { it.isNotEmpty() }?.let {
             val amount = requireDecimal(it, "订单总金额")
             amount.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()
         } ?: current.totalAmount
-        val updated = current.copy(totalAmount = totalAmount, updatedAt = now())
+
+        val status = payload.status ?: current.status
+        val paymentStatus = payload.paymentStatus ?: current.paymentStatus
+
+        val updated = current.copy(
+            totalAmount = totalAmount,
+            status = status,
+            paymentStatus = paymentStatus,
+            updatedAt = now()
+        )
+
         jdbcTemplate.update(
-            "UPDATE orders SET total_amount = ?, updated_at = ? WHERE id = ?",
+            "UPDATE orders SET total_amount = ?, status = ?, payment_status = ?, updated_at = ? WHERE id = ?",
             updated.totalAmount,
+            updated.status,
+            updated.paymentStatus,
             updated.updatedAt,
             id
         )
+
         return updated
     }
 
@@ -654,15 +804,23 @@ class InMemoryStore {
         }
         val timestamp = now()
         val itemId = nextId()
-        val item = CartItem(itemId, cartId, productId, quantity, timestamp, timestamp)
+        val unitPrice = payload.unitPrice?.trim()?.takeIf { it.isNotEmpty() }?.let { requireDecimal(it, "单价").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString() }
+        val subtotal = unitPrice?.let { up ->
+            (java.math.BigDecimal(up).multiply(java.math.BigDecimal(quantity))).setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()
+        }
+        val item = CartItem(id = itemId, cartId = cartId, productId = productId, quantity = quantity, unitPrice = unitPrice, selectedOptions = payload.selectedOptions, subtotal = subtotal, createdAt = timestamp, updatedAt = timestamp)
         cartItems[item.id] = item
         return item
     }
 
     fun updateCartItem(id: String, payload: CartItemPayload): CartItem {
         val current = cartItems[id] ?: throw NotFoundException("购物车项不存在")
-        val quantity = requirePositiveInt(payload.quantity, "数量")
-        val updated = current.copy(quantity = quantity, updatedAt = now())
+        val quantity = payload.quantity?.let { requirePositiveInt(it, "数量") } ?: current.quantity
+        val unitPrice = payload.unitPrice?.trim()?.takeIf { it.isNotEmpty() }?.let { requireDecimal(it, "单价").setScale(2, java.math.RoundingMode.HALF_UP).toPlainString() } ?: current.unitPrice
+        val subtotal = unitPrice?.let { up ->
+            (java.math.BigDecimal(up).multiply(java.math.BigDecimal(quantity))).setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()
+        } ?: current.subtotal
+        val updated = current.copy(quantity = quantity, unitPrice = unitPrice, selectedOptions = payload.selectedOptions ?: current.selectedOptions, subtotal = subtotal, updatedAt = now())
         cartItems[id] = updated
         return updated
     }

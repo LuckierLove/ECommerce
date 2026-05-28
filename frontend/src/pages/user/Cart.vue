@@ -29,6 +29,12 @@
           </div>
         </template>
       </el-table-column>
+      <el-table-column prop="unitPrice" label="单价" width="120">
+        <template #default="scope">{{ scope.row.unitPrice || productPrice(scope.row.productId) }}</template>
+      </el-table-column>
+      <el-table-column label="小计" width="140">
+        <template #default="scope">{{ itemSubtotal(scope.row) }}</template>
+      </el-table-column>
       <el-table-column prop="quantity" label="数量" width="120" />
       <el-table-column label="操作" width="180">
         <template #default="scope">
@@ -50,6 +56,25 @@
       @current-change="handlePage"
       @size-change="handleSize"
     />
+    <div class="cart-summary">
+      <div class="checkout-helpers">
+        <el-form :inline="true">
+          <el-form-item label="配送地址">
+            <el-select v-model="selectedShippingAddress" placeholder="选择地址" style="width:320px">
+              <el-option v-for="addr in addresses" :key="addr.id" :label="addr.street + ' ' + addr.city" :value="addr.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="优惠码">
+            <el-input v-model="couponCode" placeholder="输入优惠码" style="width:160px" />
+          </el-form-item>
+        </el-form>
+      </div>
+      <div>小计：{{ formattedSubtotal }}</div>
+      <div>税费：{{ formattedTax }}</div>
+      <div>配送费：{{ formattedShipping }}</div>
+      <div class="total">总计：{{ formattedTotal }}</div>
+      <el-button type="primary" :loading="checkingOut" @click="checkout" :disabled="items.length===0">结算</el-button>
+    </div>
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="480px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="90px">
         <el-form-item label="购物车ID" prop="cartId">
@@ -76,7 +101,9 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { createCartItem, deleteCartItem, listCartItems, updateCartItem } from "../../api/cart";
+import { createOrder } from "../../api/orders";
 import { listProducts } from "../../api/products";
+import { listAddresses } from "../../api/addresses";
 import type { CartItem, Product } from "../../types/models";
 
 const items = ref<CartItem[]>([]);
@@ -126,6 +153,66 @@ const fetchItems = async () => {
   }
 };
 
+const productPrice = (productId: string) => products.value.find((p) => p.id === productId)?.price || "0.00";
+
+const itemSubtotal = (item: CartItem) => {
+  const price = item.unitPrice || productPrice(item.productId);
+  return (Number(price) * item.quantity).toFixed(2);
+};
+
+const subtotal = computed(() => items.value.reduce((acc, it) => acc + Number(it.unitPrice || productPrice(it.productId)) * it.quantity, 0));
+const tax = computed(() => +(subtotal.value * 0.08).toFixed(2));
+const shipping = computed(() => (subtotal.value >= 500 ? 0 : 10));
+const totalAmount = computed(() => subtotal.value + tax.value + shipping.value);
+
+const formattedSubtotal = computed(() => subtotal.value.toFixed(2));
+const formattedTax = computed(() => tax.value.toFixed(2));
+const formattedShipping = computed(() => shipping.value.toFixed(2));
+const formattedTotal = computed(() => totalAmount.value.toFixed(2));
+
+const checkingOut = ref(false);
+const addresses = ref<any[]>([]);
+const selectedShippingAddress = ref<string | null>(null);
+const couponCode = ref("");
+
+const checkout = async () => {
+  if (!authStore.userId) {
+    ElMessage.error("未登录用户无法结算");
+    return;
+  }
+  try {
+    await ElMessageBox.confirm("确认提交订单并清空购物车？", "结算", { type: "warning" });
+  } catch (e) {
+    return;
+  }
+  checkingOut.value = true;
+  try {
+    const payload = {
+      userId: authStore.userId,
+      totalAmount: formattedTotal.value,
+      subtotal: formattedSubtotal.value,
+      items: items.value.map((it) => ({ productId: it.productId, quantity: it.quantity, price: it.unitPrice || productPrice(it.productId) })),
+      shippingAddressId: selectedShippingAddress.value,
+      couponCodes: couponCode.value ? [couponCode.value] : undefined
+    };
+    const res = await createOrder(payload as any);
+    ElMessage.success("下单成功");
+    // 清空购物车项
+    for (const it of items.value) {
+      try {
+        await deleteCartItem(it.id);
+      } catch {}
+    }
+    fetchItems();
+    // 跳到我的订单页面
+    router.push("/user/orders");
+  } catch (error) {
+    ElMessage.error("结算失败，请重试");
+  } finally {
+    checkingOut.value = false;
+  }
+};
+
 const fetchProducts = async () => {
   try {
     const res = await listProducts({ page: 1, size: 1000 });
@@ -148,7 +235,19 @@ onMounted(() => {
   }
   fetchProducts();
   fetchItems();
+  fetchAddresses();
 });
+
+const fetchAddresses = async () => {
+  try {
+    const res = await listAddresses({ page: 1, size: 50, userId: authStore.userId });
+    const pageData = (res as any).data as { list: any[] };
+    addresses.value = pageData.list || [];
+    if (addresses.value.length > 0) selectedShippingAddress.value = addresses.value[0].id;
+  } catch {
+    addresses.value = [];
+  }
+};
 
 const resetForm = () => {
   form.id = "";

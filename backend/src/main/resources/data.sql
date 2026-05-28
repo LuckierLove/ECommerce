@@ -82,12 +82,12 @@ INSERT IGNORE INTO cart_items (id, cart_id, product_id, quantity, created_at, up
 ('cart-item-1', 'cart-alice', 'product-1', 1, '2026-05-27 10:00:00', '2026-05-27 10:00:00'),
 ('cart-item-2', 'cart-alice', 'product-2', 2, '2026-05-27 10:00:00', '2026-05-27 10:00:00');
 
-INSERT IGNORE INTO orders (id, user_id, total_amount, created_at, updated_at) VALUES
-('order-1', 'user-alice', 5278.90, '2026-05-27 10:00:00', '2026-05-27 10:00:00');
+INSERT IGNORE INTO orders (id, user_id, total_amount, subtotal, tax_amount, shipping_cost, currency, status, payment_status, items_count, created_at, updated_at) VALUES
+('order-1', 'user-alice', 5278.90, 5278.90, 0.00, 0.00, 'CNY', 'CREATED', 'PAID', 3, '2026-05-27 10:00:00', '2026-05-27 10:00:00');
 
-INSERT IGNORE INTO order_items (id, order_id, product_id, quantity, price, created_at, updated_at) VALUES
-('order-item-1', 'order-1', 'product-1', 1, 4999.00, '2026-05-27 10:00:00', '2026-05-27 10:00:00'),
-('order-item-2', 'order-1', 'product-2', 2, 79.90, '2026-05-27 10:00:00', '2026-05-27 10:00:00');
+INSERT IGNORE INTO order_items (id, order_id, product_id, quantity, price, unit_price, subtotal, created_at, updated_at) VALUES
+('order-item-1', 'order-1', 'product-1', 1, 4999.00, 4999.00, 4999.00, '2026-05-27 10:00:00', '2026-05-27 10:00:00'),
+('order-item-2', 'order-1', 'product-2', 2, 79.90, 79.90, 159.80, '2026-05-27 10:00:00', '2026-05-27 10:00:00');
 
 INSERT IGNORE INTO payments (id, order_id, amount, payment_method, created_at, updated_at) VALUES
 ('payment-1', 'order-1', 5278.90, 1, '2026-05-27 10:00:00', '2026-05-27 10:00:00');

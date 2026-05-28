@@ -52,14 +52,32 @@ data class Order(
     val id: String,
     val userId: String,
     val totalAmount: String,
+    val subtotal: String,
+    val taxAmount: String,
+    val shippingCost: String,
+    val currency: String,
+    val status: String,
+    val paymentStatus: String,
+    val itemsCount: Int,
     val createdAt: String,
-    val updatedAt: String
+    val updatedAt: String,
+    val billingAddressId: String? = null,
+    val shippingAddressId: String? = null,
+    val shippingMethod: String? = null,
+    val trackingNumber: String? = null,
+    val note: String? = null
 )
 
 data class OrderDetail(
     val id: String,
     val userId: String,
     val totalAmount: String,
+    val subtotal: String,
+    val taxAmount: String,
+    val shippingCost: String,
+    val currency: String,
+    val status: String,
+    val paymentStatus: String,
     val createdAt: String,
     val updatedAt: String,
     val items: List<OrderItem>
@@ -68,13 +86,22 @@ data class OrderDetail(
 data class OrderItemPayload(
     val productId: String? = null,
     val quantity: Int? = null,
-    val price: String? = null
+    val price: String? = null,
+    val sku: String? = null
 )
 
 data class OrderPayload(
     val userId: String? = null,
     val totalAmount: String? = null,
     val items: List<OrderItemPayload>? = null
+    ,
+    val subtotal: String? = null,
+    val shippingAddressId: String? = null,
+    val billingAddressId: String? = null,
+    val couponCodes: List<String>? = null
+    ,
+    val status: String? = null,
+    val paymentStatus: String? = null
 )
 
 data class OrderItem(
@@ -83,6 +110,12 @@ data class OrderItem(
     val productId: String,
     val quantity: Int,
     val price: String,
+    val sku: String? = null,
+    val name: String? = null,
+    val unitPrice: String? = null,
+    val taxAmount: String? = null,
+    val discountAmount: String? = null,
+    val subtotal: String? = null,
     val createdAt: String,
     val updatedAt: String
 )
@@ -99,6 +132,9 @@ data class CartItem(
     val cartId: String,
     val productId: String,
     val quantity: Int,
+    val unitPrice: String? = null,
+    val selectedOptions: String? = null,
+    val subtotal: String? = null,
     val createdAt: String,
     val updatedAt: String
 )
@@ -202,6 +238,9 @@ data class CartItemPayload(
     val cartId: String? = null,
     val productId: String? = null,
     val quantity: Int? = null
+    ,
+    val unitPrice: String? = null,
+    val selectedOptions: String? = null
 )
 
 data class CouponPayload(
