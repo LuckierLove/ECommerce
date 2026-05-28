@@ -107,6 +107,18 @@ class DatabaseInitializer(
                 id VARCHAR(255) PRIMARY KEY,
                 user_id VARCHAR(255) NOT NULL,
                 total_amount DECIMAL(10,2) NOT NULL,
+                subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                shipping_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                currency VARCHAR(10) NOT NULL DEFAULT 'CNY',
+                status VARCHAR(50) NOT NULL DEFAULT 'CREATED',
+                payment_status VARCHAR(50) NOT NULL DEFAULT 'UNPAID',
+                items_count INT NOT NULL DEFAULT 0,
+                billing_address_id VARCHAR(255),
+                shipping_address_id VARCHAR(255),
+                shipping_method VARCHAR(255),
+                tracking_number VARCHAR(255),
+                note TEXT,
                 created_at TIMESTAMP NOT NULL,
                 updated_at TIMESTAMP NOT NULL
             )
@@ -118,6 +130,12 @@ class DatabaseInitializer(
                 product_id VARCHAR(255) NOT NULL,
                 quantity INT NOT NULL,
                 price DECIMAL(10,2) NOT NULL,
+                sku VARCHAR(255),
+                name VARCHAR(255),
+                unit_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
                 created_at TIMESTAMP NOT NULL,
                 updated_at TIMESTAMP NOT NULL
             )
@@ -136,6 +154,9 @@ class DatabaseInitializer(
                 cart_id VARCHAR(255) NOT NULL,
                 product_id VARCHAR(255) NOT NULL,
                 quantity INT NOT NULL,
+                unit_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                selected_options TEXT,
+                subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
                 created_at TIMESTAMP NOT NULL,
                 updated_at TIMESTAMP NOT NULL
             )

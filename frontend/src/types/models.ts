@@ -53,6 +53,18 @@ export interface Order {
   id: string;
   userId: string;
   totalAmount: string;
+  subtotal?: string;
+  taxAmount?: string;
+  shippingCost?: string;
+  currency?: string;
+  status?: string;
+  paymentStatus?: string;
+  itemsCount?: number;
+  billingAddressId?: string | null;
+  shippingAddressId?: string | null;
+  shippingMethod?: string | null;
+  trackingNumber?: string | null;
+  note?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -67,6 +79,12 @@ export interface OrderItem {
   productId: string;
   quantity: number;
   price: string;
+  sku?: string | null;
+  name?: string | null;
+  unitPrice?: string | null;
+  taxAmount?: string | null;
+  discountAmount?: string | null;
+  subtotal?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -83,6 +101,9 @@ export interface CartItem {
   cartId: string;
   productId: string;
   quantity: number;
+  unitPrice?: string | null;
+  selectedOptions?: string | null;
+  subtotal?: string | null;
   createdAt: string;
   updatedAt: string;
 }

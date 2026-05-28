@@ -19,7 +19,12 @@
     <el-table :data="orders" v-loading="loading" border>
       <el-table-column prop="id" label="订单ID" width="200" />
       <el-table-column prop="userId" label="用户ID" width="180" />
+      <el-table-column prop="subtotal" label="小计" width="120" />
+      <el-table-column prop="taxAmount" label="税费" width="100" />
+      <el-table-column prop="shippingCost" label="配送费" width="100" />
       <el-table-column prop="totalAmount" label="总金额" width="120" />
+      <el-table-column prop="status" label="订单状态" width="120" />
+      <el-table-column prop="paymentStatus" label="支付状态" width="120" />
       <el-table-column prop="createdAt" label="创建时间" />
       <el-table-column label="操作" width="180">
         <template #default="scope">
@@ -57,16 +62,23 @@
     </el-dialog>
     <el-dialog v-model="detailVisible" title="订单详情" width="720px">
       <el-descriptions :column="2" border class="detail-meta">
-        <el-descriptions-item label="订单ID">{{ detailOrder?.id }}</el-descriptions-item>
-        <el-descriptions-item label="用户ID">{{ detailOrder?.userId }}</el-descriptions-item>
-        <el-descriptions-item label="总金额">{{ detailOrder?.totalAmount }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ detailOrder?.createdAt }}</el-descriptions-item>
+          <el-descriptions-item label="订单ID">{{ detailOrder?.id }}</el-descriptions-item>
+          <el-descriptions-item label="用户ID">{{ detailOrder?.userId }}</el-descriptions-item>
+          <el-descriptions-item label="小计">{{ detailOrder?.subtotal }}</el-descriptions-item>
+          <el-descriptions-item label="税费">{{ detailOrder?.taxAmount }}</el-descriptions-item>
+          <el-descriptions-item label="配送费">{{ detailOrder?.shippingCost }}</el-descriptions-item>
+          <el-descriptions-item label="总计">{{ detailOrder?.totalAmount }}</el-descriptions-item>
+          <el-descriptions-item label="订单状态">{{ detailOrder?.status }}</el-descriptions-item>
+          <el-descriptions-item label="支付状态">{{ detailOrder?.paymentStatus }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ detailOrder?.createdAt }}</el-descriptions-item>
       </el-descriptions>
       <el-table :data="detailOrder?.items || []" border class="detail-table">
         <el-table-column prop="productId" label="商品ID" width="180" />
-        <el-table-column prop="quantity" label="数量" width="100" />
-        <el-table-column prop="price" label="单价" width="120" />
-        <el-table-column prop="createdAt" label="加入时间" />
+          <el-table-column prop="name" label="商品名" width="180" />
+          <el-table-column prop="quantity" label="数量" width="100" />
+          <el-table-column prop="unitPrice" label="单价" width="120" />
+          <el-table-column prop="subtotal" label="小计" width="120" />
+          <el-table-column prop="createdAt" label="加入时间" />
       </el-table>
     </el-dialog>
   </div>

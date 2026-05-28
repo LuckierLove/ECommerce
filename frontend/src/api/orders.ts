@@ -6,10 +6,10 @@ export const listOrders = (params: { page?: number; size?: number; userId?: stri
 
 export const getOrder = (id: string) => http.get<ApiResponse<OrderDetail>>(`/orders/${id}`);
 
-export const createOrder = (payload: { userId: string; totalAmount: string }) =>
+export const createOrder = (payload: { userId: string; totalAmount: string; items?: { productId: string; quantity: number; price?: string }[]; subtotal?: string; shippingAddressId?: string; billingAddressId?: string; couponCodes?: string[] }) =>
   http.post<ApiResponse<Order>>("/orders", payload);
 
-export const updateOrder = (id: string, payload: { totalAmount: string }) =>
+export const updateOrder = (id: string, payload: { totalAmount?: string; status?: string; paymentStatus?: string }) =>
   http.put<ApiResponse<Order>>(`/orders/${id}`, payload);
 
 export const deleteOrder = (id: string) => http.delete<ApiResponse<null>>(`/orders/${id}`);
