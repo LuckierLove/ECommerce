@@ -673,6 +673,20 @@ class InMemoryStore {
             order.updatedAt
         )
 
+        // persist in-memory order map
+        orders[order.id] = order
+
+        // Validate inventory availability first
+        payload.items.orEmpty().forEach { item ->
+            val productId = requireText(item.productId, "商品ID")
+            val requiredQty = requirePositiveInt(item.quantity, "数量")
+            val available = inventory.values.filter { it.productId == productId }.sumOf { it.quantity }
+            if (available < requiredQty) {
+                throw ConflictException("商品 $productId 库存不足: 需要 $requiredQty, 可用 $available")
+            }
+        }
+
+        // Insert order items and deduct inventory
         val submittedItems = payload.items.orEmpty().map { item ->
             val productId = requireText(item.productId, "商品ID")
             val product = products[productId] ?: throw NotFoundException("商品不存在")
@@ -693,7 +707,40 @@ class InMemoryStore {
                 timestamp,
                 timestamp
             )
+
+            // Deduct from inventory entries (first-fit)
+            var toDeduct = quantity
+            val invEntries = inventory.values.filter { it.productId == productId }.sortedBy { it.createdAt }
+            for (inv in invEntries) {
+                if (toDeduct <= 0) break
+                val deduct = minOf(inv.quantity, toDeduct)
+                val newQty = inv.quantity - deduct
+                val updatedInv = inv.copy(quantity = newQty, updatedAt = timestamp)
+                inventory[inv.id] = updatedInv
+                jdbcTemplate.update("UPDATE inventory SET quantity = ?, updated_at = ? WHERE id = ?", newQty, timestamp, inv.id)
+                toDeduct -= deduct
+            }
+
             item.copy(price = price)
+        }
+
+        // If auto-pay requested, create a payment and mark order paid
+        var finalOrder = order
+        if (payload.autoPay == true || payload.paymentMethod != null) {
+            val paymentId = nextId()
+            val paymentMethod = payload.paymentMethod ?: 1
+            payments[paymentId] = Payment(paymentId, order.id, order.totalAmount, paymentMethod, timestamp, timestamp)
+            try {
+                jdbcTemplate.update("INSERT INTO payments (id, order_id, amount, payment_method, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)", paymentId, order.id, order.totalAmount, paymentMethod, timestamp, timestamp)
+            } catch (e: Exception) {
+                // ignore DB insert failure if payments table not present
+            }
+            // update order payment_status
+            jdbcTemplate.update("UPDATE orders SET payment_status = ? WHERE id = ?", "PAID", order.id)
+            // update in-memory order representation
+            val paidOrder = order.copy(paymentStatus = "PAID", updatedAt = now())
+            orders[order.id] = paidOrder
+            finalOrder = paidOrder
         }
 
         val merchantIds = submittedItems.mapNotNull { item ->
@@ -702,15 +749,15 @@ class InMemoryStore {
 
         orderEventPublisher.publish(
             OrderSubmittedEvent(
-                orderId = order.id,
+                orderId = finalOrder.id,
                 userId = userId,
-                totalAmount = order.totalAmount,
+                totalAmount = finalOrder.totalAmount,
                 items = submittedItems,
                 merchantIds = merchantIds,
                 createdAt = timestamp
             )
         )
-        return order
+        return finalOrder
     }
 
     fun updateOrder(id: String, payload: OrderPayload): Order {

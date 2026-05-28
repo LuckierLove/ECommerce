@@ -15,8 +15,7 @@ class DatabaseInitializer(
     , private val dataSource: DataSource
 ) : ApplicationRunner {
     override fun run(args: ApplicationArguments) {
-        createTables()
-        loadSeedData()
+        println("Flyway is responsible for schema and seed migrations. Skipping inline DDL/seed.")
     }
 
     private fun createTables() {
