@@ -9,6 +9,13 @@ buildscript {
     }
 }
 
+// Force specific dependency versions when Spring Boot dependency management pins older versions
+configurations.all {
+    resolutionStrategy {
+        force 'org.flywaydb:flyway-core:10.14.0'
+    }
+}
+
 apply plugin: 'org.jetbrains.kotlin.jvm'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
@@ -23,14 +30,14 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-core:10.14.0'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
-    runtimeOnly 'com.mysql:mysql-connector-j:8.4.0'
+    runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
     implementation 'cn.dev33:sa-token-spring-boot3-starter:1.44.0'
     implementation 'org.apache.rocketmq:rocketmq-spring-boot-starter:2.3.5'
 
@@ -58,3 +65,5 @@ tasks.withType(Test).configureEach {
 tasks.named('bootJar') {
     enabled = false
 }
+
+// Note: do not force a default profile for bootRun here to allow explicit profile selection when testing.

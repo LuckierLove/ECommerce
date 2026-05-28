@@ -4,9 +4,8 @@ import com.example.ecommerce.model.OrderSubmittedEvent
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.rocketmq.spring.core.RocketMQTemplate
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 
-@Service
 class RocketMqOrderEventPublisher(
     private val rocketMQTemplate: RocketMQTemplate,
     private val objectMapper: ObjectMapper,

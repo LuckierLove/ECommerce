@@ -1,0 +1,5 @@
+spring:
+  flyway:
+    enabled: false
+
+# Dev profile: keep server on default port and avoid running DB migrations automatically
