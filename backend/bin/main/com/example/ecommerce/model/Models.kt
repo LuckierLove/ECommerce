@@ -100,6 +100,9 @@ data class OrderPayload(
     val billingAddressId: String? = null,
     val couponCodes: List<String>? = null
     ,
+    val paymentMethod: Int? = null,
+    val autoPay: Boolean? = null,
+
     val status: String? = null,
     val paymentStatus: String? = null
 )
