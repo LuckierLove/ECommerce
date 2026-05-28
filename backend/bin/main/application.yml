@@ -1,0 +1,46 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: ecommerce-backend
+  datasource:
+    url: jdbc:mysql://localhost:3306/ecommerce?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+    username: root
+    password: "12345678"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+app:
+  jwt:
+    secret: "ecommerce-backend-demo-secret-key-32-bytes-minimum"
+    expiration-minutes: 240
+
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: ecommerce-order-producer-group
+  consumer:
+    group: ecommerce-merchant-consumer-group
+
+ecommerce:
+  rocketmq:
+    order-topic: ecommerce-order-submitted-topic
+
+sa-token:
+  token-name: Authorization
+  timeout: 86400
+  active-timeout: -1
+  is-concurrent: true
+  is-share: false
+  token-style: uuid
+  is-log: false

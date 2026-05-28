@@ -31,3 +31,6 @@ logs/
 # Misc
 *.tmp
 *.swp
+
+# Data generator workspace
+data/

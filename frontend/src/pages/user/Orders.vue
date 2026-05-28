@@ -129,10 +129,20 @@ const fetchOrders = async () => {
 const router = useRouter();
 const authStore = useAuthStore();
 
-onMounted(() => {
+onMounted(async () => {
   if (!authStore.token) {
     router.push("/login");
     return;
+  }
+  if (!authStore.userId) {
+    try {
+      await authStore.loadCurrentUser();
+    } catch {
+      // Keep the page usable even if the user lookup temporarily fails.
+    }
+  }
+  if (!query.userId && authStore.userId) {
+    query.userId = authStore.userId;
   }
   fetchOrders();
 });
@@ -191,7 +201,7 @@ const handleSearch = () => {
 const handleReset = () => {
   query.page = 1;
   query.size = 10;
-  query.userId = "";
+  query.userId = authStore.userId || "";
   fetchOrders();
 };
 

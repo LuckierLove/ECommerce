@@ -83,6 +83,11 @@ const handleLogin = async () => {
     } catch (e) {
       authStore.setRole(form.role);
     }
+    try {
+      await authStore.loadCurrentUser();
+    } catch {
+      // If the user lookup fails, keep the login token and role so the session still works.
+    }
     ElMessage.success("登录成功");
     // 根据角色跳转到对应首页，避免默认 / 重定向到 user 页面导致权限不匹配
     const role = authStore.role;
